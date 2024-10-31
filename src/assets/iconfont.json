@@ -1,0 +1,44 @@
+{
+  "id": "4728818",
+  "name": "DeskGo",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "2771913",
+      "name": "课程表",
+      "font_class": "kechengbiao",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "666890",
+      "name": "天气",
+      "font_class": "tianqi",
+      "unicode": "e694",
+      "unicode_decimal": 59028
+    },
+    {
+      "icon_id": "1314419",
+      "name": "设置",
+      "font_class": "shezhi",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "6805558",
+      "name": "天气系列",
+      "font_class": "Hailstorm-Night",
+      "unicode": "e9ad",
+      "unicode_decimal": 59821
+    },
+    {
+      "icon_id": "11991201",
+      "name": "课程表",
+      "font_class": "course",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    }
+  ]
+}
