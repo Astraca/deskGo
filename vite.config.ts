@@ -12,11 +12,11 @@ export default defineConfig({
   plugins: [
     vue(),
     vueJsx(),
-    //增加electron
-    electron({
-      // 主进程入口文件
-      entry: "./electron-main/index.js",
-    }),
+    // //增加electron
+    // electron({
+    //   // 主进程入口文件
+    //   entry: "./electron-main/index.js",
+    // }),
     AutoImport({
       resolvers: [ElementPlusResolver()],
     }),

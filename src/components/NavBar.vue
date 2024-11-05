@@ -1,21 +1,29 @@
 <script setup>
 import { ref, defineOptions } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
+
 defineOptions({
      name: 'NavBar'
 })
 const hello = ref('来写')
 
 const barList = ref([
-    {id: 1, label: '我的课表', icon: 'icon-kechengbiao'},
-    {id: 2, label: '天气中心', icon: 'icon-tianqi'},
-    {id: 3, label: '课表设置', icon: 'icon-shezhi'},
+    {id: 1, label: '我的课表', icon: 'icon-kechengbiao', route: '/course'},
+    {id: 2, label: '看看天气', icon: 'icon-tianqi', route: '/weather'},
+    {id: 3, label: '设置中心', icon: 'icon-shezhi', route: '/setting'},
 ])
+const routerFunc = (e) => {
+    router.push(e)
+}
 </script>
 
 <template>
     <div class="nav-bar">
         <ul>
-            <li v-for="item in barList" :key="item.id">
+            <li v-for="item in barList" :key="item.id" @click="routerFunc(item.route)">
                 <i class="iconfont" :class="item.icon"></i>
                 <span>{{ item.label }}</span>
                 <!-- <span>{{ item.label }}</span> -->
