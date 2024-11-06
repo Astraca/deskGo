@@ -25,4 +25,8 @@ npm run elctron:dev
 + 2024年11月5日
   + 实现设置中心大致界面
   + 使用pinia进行状态管理
-    + 待实现功能
+  + 加入定位
++ 2024年11月6日
+  + 继续完善设置中心页面
+  + ![image-20241106152812753](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241106152812753.png)
+  + ![image-20241106152833883](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241106152833883.png)

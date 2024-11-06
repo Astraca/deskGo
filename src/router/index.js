@@ -2,7 +2,7 @@ import { createWebHashHistory, createRouter } from "vue-router";
 
 // import HomeView from './HomeView.vue'
 const routes = [
-  { path: "/", redirect: "/course" },
+  { path: "/", redirect: "/setting" },
   //   { path: "*", component: () => import("@/view/404.vue") },
   //   {
   //     path: "/404",
