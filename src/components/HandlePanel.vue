@@ -3,6 +3,7 @@ import { ref, defineOptions } from 'vue'
 import TopInfo from './TopInfo.vue'
 import NavBar from './NavBar.vue';
 
+
 defineOptions({
      name: 'HandlePanel'
 })

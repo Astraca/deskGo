@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "3855614",
+      "name": "提示",
+      "font_class": "tishi",
+      "unicode": "e623",
+      "unicode_decimal": 58915
+    },
+    {
       "icon_id": "2771913",
       "name": "课程表",
       "font_class": "kechengbiao",

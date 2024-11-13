@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineOptions } from 'vue'
+import { ref, defineOptions, onMounted } from 'vue'
 defineOptions({
      name: 'WeatherPage'
 })

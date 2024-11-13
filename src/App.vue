@@ -1,7 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+// 组件
 import HandlePanel from './components/HandlePanel.vue'
 import TopNav from './components/TopNav.vue'
-
+// Pinia
+import { useGlobalStore } from './stores/global.js'
+const globalStore = useGlobalStore()
+const topNavText = computed(() => globalStore.getNavInfo)
 </script>
 
 <template>
@@ -11,11 +16,10 @@ import TopNav from './components/TopNav.vue'
     </div>
     <div class="right-routerview">
       <div class="head-info">
-        <TopNav></TopNav>
+        <TopNav :title="topNavText"></TopNav>
       </div>
       <div class="router-output">
         <RouterView />
-
       </div>
 
     </div>

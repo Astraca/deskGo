@@ -1,7 +1,7 @@
 <script setup>
 import { ref, defineOptions } from 'vue'
 defineOptions({
-     name: 'WeatherPage'
+     name: 'CoursePage'
 })
 const hello = ref('我的课表')
 const tableHead = ref(['周一', '周二', '周三' ,'周四' ,'周五' ,'周六', '周日'])
