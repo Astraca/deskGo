@@ -7,13 +7,12 @@ defineOptions({
 
 const hello = ref('我的课表');
 const tableHead = ref(['周一', '周二', '周三', '周四', '周五', '周六', '周日']);
-const timeSeries = computed(() => 
+const timeSeries = computed(() => {
     const startTime = "08:00";
     const courseStep = 45;
-    const relea = 0;
+    // TODO: 如何表示时间
 });
 
-const 
 
 const timeTableData = ref([
     {courseName: "开源软件开发方法与实践1", teacherName: "杨雷1", classRoomLocation:"1东四-204", classStart: 0, classEnd:2},
