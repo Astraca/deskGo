@@ -10,7 +10,7 @@ const tableHead = ref(['周一', '周二', '周三', '周四', '周五', '周六
 const timeSeries = computed(() => 
     const startTime = "08:00";
     const courseStep = 45;
-    const relea
+    const relea = 0;
 });
 
 const 
