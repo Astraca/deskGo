@@ -38,8 +38,15 @@ npm run elctron:dev
       + 用户可以设置提示内容，文字颜色等
     + 确定两种提醒方式页面逻辑
       + ![动画](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/%E5%8A%A8%E7%94%BB.gif)
++ 2024年11月20日
   + 完善整体页面效果
     + 将用户点击通过Pinia进行状态管理，展示不同页面激活状态
       + ![image-20241113180021420](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241113180021420.png)
     + 完成不同页面标题参数传递
-      + ![image-20241113180104733](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241113180104733.png)
+      + ![image-20241128134108223](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241128134108223.png)
++ 2024年11月26日
+  + 课程表页面制作
+    + ![image-20241128133920355](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241128133920355.png)
+    + ![image-20241128133936225](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241128133936225.png)
+
+​	
