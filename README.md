@@ -48,5 +48,10 @@ npm run elctron:dev
   + 课程表页面制作
     + ![image-20241128133920355](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241128133920355.png)
     + ![image-20241128133936225](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241128133936225.png)
-
+---
++ 2024年11月28日
+  + 问题：
+    Electron: 是否能够实现托盘。如何实现消息提醒。
+  + 确定:
+    配置信息和课程数据存储方式。
 ​	
