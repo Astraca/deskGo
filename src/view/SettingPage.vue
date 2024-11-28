@@ -1,41 +1,42 @@
 <script setup>
-import { ref, defineOptions, onMounted } from 'vue'
+import { ref, defineOptions, onMounted } from 'vue';
 
 // 组件导入
 import InfoBox from '../components/InfoBox.vue';
 
 // Pinia
-import { useSettingStore } from '../stores/setting.js'
-const settingStore = useSettingStore()
-const { get_CaiYun_token, set_CaiYun_token } = settingStore
+import { useSettingStore } from '../stores/setting.js';
+const settingStore = useSettingStore();
+const { get_CaiYun_token, set_CaiYun_token } = settingStore;
 
 defineOptions({
     name: 'SettingPage'
-})
+});
 
 
-const hello = ref('课表设置')
+const hello = ref('课表设置');
 
 // 天气设置
-const token = ref(null)
+const token = ref(null);
 onMounted(() => {
-    const res = settingStore.get_CaiYun_token
-})
-const weatherMes = ref('<p>天气服务需要使用到<b>彩云天气API</b></p><p>请前往<a href="https://platform.caiyunapp.com/login" target="_blank">彩云科技开放平台</a>获取服务Token</p>')
+    // 从Pinia中获取token
+    const res = settingStore.get_CaiYun_token;
+});
+const weatherMes = ref('<p>天气服务需要使用到<b>彩云天气API</b></p><p>请前往<a href="https://platform.caiyunapp.com/login" target="_blank">彩云科技开放平台</a>获取服务Token</p>');
 
 
 // 课表设置
-const totalWeekNum = ref(null)
-const currentWeek = ref(null)
-const courseDuration = ref(null)
-const courseNum = ref(null)
-const startDate = ref(null)
-const courseMes = ref('<p>请在此设置您本学期的课程信息</p>')
+const totalWeekNum = ref(null);
+const currentWeek = ref(null);
+const courseDuration = ref(null);
+const courseNum = ref(null);
+const startDate = ref(null);
+const courseMes = ref('<p>请在此设置您本学期的课程信息</p>');
 
 // 提醒设置
-const remindTarget = ref(null)
-const remindMethod = ref('clock')
-const remindMes = ref('<p>请在此设置课程开始<b>提醒时间</b>和<b>提醒方式</b>。</p>')
+const remindTarget = ref(null);
+const remindMethod = ref('clock');
+const remindMes = ref('<p>请在此设置课程开始<b>提醒时间</b>和<b>提醒方式</b>。</p>');
 //自动补充邮箱后缀
 const querySearchEmail = (queryString, callback) => {
   const emailList = [
@@ -47,32 +48,32 @@ const querySearchEmail = (queryString, callback) => {
     { value: '@stu.nsu.edu.cn' },
     { value: '@mail.swust.edu.cn' }
   ]
-  let results = []
-  let queryList = []
+  let results = [];
+  let queryList = [];
   emailList.map((item) => {
     queryList.push({ value: queryString.split('@')[0] + item.value })
-  })
-  results = queryString ? queryList.filter(createFilter(queryString)) : queryList
-  callback(results)
-}
+  });
+  results = queryString ? queryList.filter(createFilter(queryString)) : queryList;
+  callback(results);
+};
 // 邮箱填写过滤
 const createFilter = (queryString) => {
   return (item) => {
     return item.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0
-  }
-}
+  };
+};
 // 清除提醒的值(切换方式)
 const clearRemindTarget = () => {
-    remindTarget.value = null
-}
+    remindTarget.value = null;
+};
 
 // 保存设置
 const saveSetting = () => {
     ElMessage({
         'message': '保存设置ing...',
         'type': 'success'
-    })
-}
+    });
+};
 </script>
 
 <template>
