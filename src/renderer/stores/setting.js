@@ -50,6 +50,7 @@ export const useSettingStore = defineStore("setting", () => {
     currentWeekNum: null,
     courseDuration: null,
     courseNum: null,
+    startTime: null,
     startDate: null,
     remindMethod: "clock",
     remindTarget: 30,

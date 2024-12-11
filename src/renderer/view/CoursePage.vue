@@ -1,30 +1,56 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+
+// Pinia
+import { useSettingStore } from '@/stores/setting.js'
+
+const settingStore = useSettingStore();
+
+const { totalWeekNum } = settingStore.getSettingForm;
+console.log('测试', totalWeekNum);
+
 
 defineOptions({
     name: 'CoursePage'
 });
 
-const hello = ref('我的课表');
 const tableHead = ref(['周一', '周二', '周三', '周四', '周五', '周六', '周日']);
-const timeSeries = computed(() => {
-    const startTime = "08:00";
-    const courseStep = 45;
-    // TODO: 如何表示时间
-});
 
 
-const timeTableData = ref([
-    { courseName: "开源软件开发方法与实践1", teacherName: "杨雷1", classRoomLocation: "1东四-204", classStart: 0, classEnd: 2 },
-    { courseName: "开源软件开发方法与实践2", teacherName: "杨雷2", classRoomLocation: "2东四-204", classStart: 1, classEnd: 3 },
-    { courseName: "开源软件开发方法与实践3", teacherName: "杨雷3", classRoomLocation: "3东四-204", classStart: 2, classEnd: 4 },
-    { courseName: "开源软件开发方法与实践4", teacherName: "杨雷4", classRoomLocation: "4东四-204", classStart: 3, classEnd: 5 },
-    { courseName: "开源软件开发方法与实践5", teacherName: "杨雷5", classRoomLocation: "5东四-204", classStart: 4, classEnd: 6 },
-]);
-const addCourseDialog = ref(true);
+// 添加课程
+const tempCourseOption = ref(null);
+
+const addCourseDialog = ref(false);
 const addCourse = () => {
     addCourseDialog.value = true;
-    ElMessage.success("模拟添加成功");
+    const timeStamp = new Date().getTime();
+    tempCourseOption.value = {
+        id: timeStamp
+    };
+    // ElMessage.success("模拟添加成功");
+};
+
+// 选择周数
+const activateWeeks = ref([]);
+onMounted(() => {
+    for(let i = 1; i <= totalWeekNum; i++){
+        activateWeeks.value.push(i);
+    }
+})
+const weekHaveCourse = (e, i) => {
+    if (!isActiveCourse(i)) activateWeeks.value.push(i);
+    else activateWeeks.value.splice(activateWeeks.value.indexOf(i), 1); // 从目标开始，删除一个元素
+}
+const isActiveCourse = (item) => {
+    return activateWeeks.value.includes(item);
+}
+const closeDialog = () => {
+    tempCourseOption.value = null;
+    addCourseDialog.value = false;
+}
+const saveCourse = () => {
+    console.log(tempCourseOption.value);
+    
 }
 </script>
 
@@ -39,11 +65,40 @@ const addCourse = () => {
                 </el-col>
             </el-row>
         </div>
-        <el-dialog v-model="addCourseDialog" title="导入课表" width="500" align-center center :close-on-click-modal="false">
+        <el-dialog v-model="addCourseDialog" title="导入课表" width="500" align-center center :close-on-click-modal="false" @close="closeDialog">
+            <el-form class="form-style">
+                <el-form-item label="课程名称:">
+                    <el-input clearable placeholder="请输入课程名称"></el-input>
+                </el-form-item>
+                <el-form-item label="任课教师:">
+                    <el-input clearable placeholder="请输入任课教师"></el-input>
+                </el-form-item>
+                <el-form-item label="上课教室:">
+                    <el-input clearable placeholder="请输入上课教室"></el-input>
+                </el-form-item>
+                <el-form-item label="上课时间:">
+                    <div class="flex space-between" style="width: 100%;">
+                        <el-time-select v-model="startTime" style="width: 45% " :max-time="endTime" placeholder="开始时间"
+                            start="08:30" step="00:15" end="18:30" />
+                        <span>-</span>
+                        <el-time-select v-model="endTime" style="width: 45%" :min-time="startTime" placeholder="结束时间"
+                            start="08:30" step="00:15" end="18:30" />
+                    </div>
+                </el-form-item>
+                <el-form-item label="上课周数:">
+                    <!-- <el-button>设定</el-button> -->
+                    <div style="flex-wrap: wrap;" class="flex start weeks">
+                        <span v-for="(item, index) in totalWeekNum" :key="index"
+                            :class="isActiveCourse(item) ? 'week-have-course' : 'week-no-course'"
+                            class="week-have-course" @click="weekHaveCourse($event, item)"> {{ item
+                            }}</span>
+                    </div>
+                </el-form-item>
+            </el-form>
             <template #footer>
                 <div class="dialog-footer">
                     <el-button @click="addCourseDialog = false">取消</el-button>
-                    <el-button type="primary" @click="dialogVisible = false">
+                    <el-button type="primary" @click="saveCourse">
                         确认
                     </el-button>
                 </div>
@@ -82,17 +137,19 @@ const addCourse = () => {
     justify-content: center;
     flex-wrap: wrap;
 
+    // 添加课程
     .course-add {
         width: 80%;
         line-height: 60px;
         height: 60px;
-        background-color: red;
+        // background-color: red;
 
         &-btn {
-            background-color: blue;
+            // background-color: blue;
         }
     }
 
+    // 课程表样式
     .time-table {
         width: 100%;
         height: 100%;
@@ -110,12 +167,73 @@ const addCourse = () => {
 
             thead {
                 td {
-                height: 40px;
-                border: 2px solid black;
-                color: black;
-            }
+                    height: 40px;
+                    border: 2px solid black;
+                    color: black;
+                }
             }
         }
+    }
+
+    // 布局样式
+    .flex {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .space-between {
+        justify-content: space-between;
+    }
+
+    .space-around {
+        justify-content: space-around;
+    }
+
+    .start {
+        justify-content: flex-start;
+    }
+
+    .form-style {
+        .weeks {
+            span {
+                display: inline-block;
+                width: 45px;
+                height: 45px;
+                line-height: 45px;
+                text-align: center;
+                margin: 5px;
+                border-radius: 50%;
+                box-sizing: border-box;
+                border: 1px solid #aaa;
+                cursor: pointer;
+            }
+        }
+
+        .week-have-course {
+
+            background-color: #626AEF;
+            color: white;
+
+
+            &:hover {
+                background-color: #9197F4;
+            }
+        }
+
+        .week-no-course {
+
+            background-color: #fff;
+            color: black;
+
+            &:hover {
+                background-color: #9197F4;
+                color: white;
+            }
+        }
+
+
+
     }
 }
 </style>

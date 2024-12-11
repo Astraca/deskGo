@@ -100,6 +100,7 @@ const saveSetting = () => {
     window.electron.saveJsonToFile(obj, 'setting.json')
 
 };
+
 </script>
 
 <template>
@@ -142,6 +143,11 @@ const saveSetting = () => {
                             <el-input v-model.trim.number="settingForm.courseDuration" placeholder="请输课程时长">
                                 <template #append>分钟</template>
                             </el-input>
+                        </el-form-item>
+
+                        <el-form-item label="开始时间:" label-width="120px">
+                            <el-time-select v-model="settingForm.startTime" style="width: 100%" start="07:00" step="00:5" end="18:00"
+                                placeholder="每天最早课程开始时间" />
                         </el-form-item>
 
                         <el-form-item label="开始日期:" label-width="120px">
