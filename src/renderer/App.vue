@@ -1,12 +1,30 @@
-<script setup lang="ts">
-import { computed } from 'vue'
+<script setup>
+import { computed, onMounted } from 'vue'
 // 组件
 import HandlePanel from './components/HandlePanel.vue'
 import TopNav from './components/TopNav.vue'
 // Pinia
 import { useGlobalStore } from './stores/global.js'
+import { useSettingStore } from './stores/setting.js'
+
 const globalStore = useGlobalStore()
+const settingStore = useSettingStore()
+
 const topNavText = computed(() => globalStore.getNavInfo)
+
+onMounted(async () => {
+  const res = await settingStore.loadData();
+  
+  if (res === -1) {
+    ElMessage.error("加载用户设置失败!");
+  } else if (res === 0) {
+    ElMessage.warning("本地没有用户设置，请先设置!");
+  } else {
+    ElMessage.success("加载用户设置成功!");
+    console.log(settingStore.settingData);
+
+  }
+});
 </script>
 
 <template>

@@ -52,12 +52,17 @@ const addCourse = () => {
         <div class="time-table">
             <table>
                 <thead>
-                    <th>时间</th>
-                    <th v-for="item in tableHead" :key="item"> {{ item }}</th>
+                    <tr>
+                        <td>时间</td>
+                        <td v-for="item in tableHead" :key="item"> {{ item }}</td>
+                    </tr>
                 </thead>
 
                 <tbody>
-
+                    <tr>
+                        <td>2</td>
+                        <td>1</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -103,9 +108,12 @@ const addCourse = () => {
             // background-color: red;
             border-collapse: collapse;
 
-            th {
+            thead {
+                td {
                 height: 40px;
                 border: 2px solid black;
+                color: black;
+            }
             }
         }
     }

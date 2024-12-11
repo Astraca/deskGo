@@ -1,23 +1,13 @@
-import { fileURLToPath, URL } from "node:url";
-
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import vueJsx from "@vitejs/plugin-vue-jsx";
-import electron from "vite-plugin-electron"; //增加
+import { resolve } from "path";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
-
 export default defineConfig({
   plugins: [
     vue(),
-    vueJsx(),
-    // //增加electron
-    // electron({
-    //   // 主进程入口文件
-    //   entry: "./electron-main/index.js",
-    // }),
     AutoImport({
       resolvers: [ElementPlusResolver()],
     }),
@@ -25,13 +15,18 @@ export default defineConfig({
       resolvers: [ElementPlusResolver()],
     }),
   ],
-  //配置端口
-  server: {
-    port: 3000,
+  base: "./",
+  optimizeDeps: {
+    exclude: ["electron", "path"], // 告诉 Vite 排除预构建 electron，不然会出现 __diranme is not defined
   },
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@": resolve(__dirname, "src/renderer"),
+    },
+  },
+  css: {
+    preprocessorOptions: {
+      scss: { api: "modern-compiler" },
     },
   },
 });
