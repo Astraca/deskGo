@@ -2,30 +2,26 @@
 import { ref, computed, onMounted, watch } from 'vue';
 
 // Pinia
+import { storeToRefs } from 'pinia';
 import { useSettingStore } from '@/stores/setting.js'
 import { useCourseStore } from '@/stores/course.js'
 
 // utils
-import { time2minutes, minutes2time } from '@/utils/courseRelate';
+import { time2minutes, minutes2time, saveAsJson } from '@/utils/courseRelate';
 
 const settingStore = useSettingStore();
 const courseStore = useCourseStore();
 
-const { totalWeekNum, startTime, startDate, courseDuration, courseNum } = settingStore.getSettingForm;
+const { totalWeekNum, startTime, courseDuration } = settingStore.getSettingForm;
 const endTime = '23:00'; // 结束时间
 const { getSchedule, setSchedule } = courseStore;
-const scheduleObject = ref(null);
+
+const scheduleObject = computed(() => getSchedule);
 // const
-onMounted(() => {
-    console.log('挂载了');
-    getScheduleData()
-    
-});
-const getScheduleData = () => {
-    console.log('getScheduleData');
-    scheduleObject.value = getSchedule;
-    console.log('数据', scheduleObject.value);
-};
+// onMounted(() => {
+//     console.log('挂载了');
+//     console.log('当前 schedule:', scheduleObject.value);
+// });
 
 defineOptions({
     name: 'CoursePage'
@@ -35,11 +31,12 @@ const tableHead = ref(['周一', '周二', '周三', '周四', '周五', '周六
 
 
 // 添加课程
-const tempCourseOption = ref(null);
+const tempCourseOption = ref({});
 const addCourseDialog = ref(false);
 const addCourse = () => {
     addCourseDialog.value = true;
-    const timeStamp = new Date().getTime();
+    activeDefaultWeeks(); // 默认选中全部周数
+    const timeStamp = new Date().getTime();  // 时间戳作为id
     tempCourseOption.value = {
         id: timeStamp,  // 时间戳作为id
         name: '',
@@ -47,6 +44,7 @@ const addCourse = () => {
         room: '',
         startTime: '',
         endTime: '',
+        weekDay: '',
         week: []
     };
     // ElMessage.success("模拟添加成功");
@@ -54,11 +52,12 @@ const addCourse = () => {
 
 // 选择周数
 const activateWeeks = ref([]);
-onMounted(() => {
+const activeDefaultWeeks = () => {
     for (let i = 1; i <= totalWeekNum; i++) {
         activateWeeks.value.push(i);
     }
-});
+}
+
 const weekHaveCourse = (e, i) => {
     if (!isActiveCourse(i)) activateWeeks.value.push(i);
     else activateWeeks.value.splice(activateWeeks.value.indexOf(i), 1); // 从目标开始，删除一个元素
@@ -67,32 +66,37 @@ const isActiveCourse = (item) => {
     return activateWeeks.value.includes(item);
 };
 
-// 关闭dialoag
+// 关闭 dialoag
 const closeDialog = () => {
-    tempCourseOption.value = null;
     addCourseDialog.value = false;
 };
+
 // 清除数据
 const clearData = () => {
-    tempCourseOption.value = null;
+    tempCourseOption.value = {};
     activateWeeks.value = [];
     courseStartTime.value = '';
     courseEndTime.value = '';
     weekDay.value = null;
 };
+
 // 确认添加课程
-const saveCourse = () => {
-    console.log(tempCourseOption.value);
+const saveCourse = async () => {
+    // TODO: 安全校验
     tempCourseOption.value.startTime = courseStartTime.value;
     tempCourseOption.value.endTime = courseEndTime.value;
     tempCourseOption.value.week = activateWeeks.value;
-    console.log(tempCourseOption.value);
-    
+    tempCourseOption.value.weekDay = weekDay.value;
     setSchedule(tempCourseOption.value);
-    getScheduleData();
+    console.log(scheduleObject.value);
+    const res = await saveAsJson(scheduleObject.value, 'course.json');
+    if(res){
+        ElMessage.success("添加成功!")
+    }else{
+        ElMessage.error("添加失败!")
+    }
     closeDialog();
     clearData();
-
 };
 
 // 最小时间
@@ -101,7 +105,7 @@ const courseEndTime = ref('');
 const closeWatchMinTime = watch(courseStartTime, (newValue, oldValue) => {
     if (newValue !== undefined && oldValue !== undefined) {
         const minutes = time2minutes(newValue);
-        courseEndTime.value = minutes2time(minutes + courseDuration);        
+        courseEndTime.value = minutes2time(minutes + courseDuration);
     }
 });
 
@@ -147,14 +151,14 @@ const handleWeekDayChange = () => {
         <div class="course-add">
             <el-row justify="end">
                 <el-col :span="4" class="course-add-btn">
-                    <el-button :icon="Plus" type="primary" @click="addCourse">
-                        导入课表
+                    <el-button size="large" round color="#626AEF" :icon="Plus" type="primary" @click="addCourse">
+                        添加课程
                     </el-button>
                 </el-col>
             </el-row>
         </div>
-        <el-dialog v-model="addCourseDialog" title="导入课表" width="600" align-center center :close-on-click-modal="false"
-            @close="closeDialog">
+        <el-dialog v-if="addCourseDialog" v-model="addCourseDialog" title="添加课程" width="600" align-center center
+            :close-on-click-modal="false" @close="closeDialog">
             <el-form class="form-style">
                 <el-form-item label="课程名称:">
                     <el-input v-model="tempCourseOption.name" clearable placeholder="请输入课程名称"></el-input>
@@ -239,11 +243,6 @@ const handleWeekDayChange = () => {
         width: 80%;
         line-height: 60px;
         height: 60px;
-        // background-color: red;
-
-        &-btn {
-            // background-color: blue;
-        }
     }
 
     // 课程表样式
@@ -324,12 +323,12 @@ const handleWeekDayChange = () => {
             color: black;
 
             &:hover {
-                background-color: #9197F4;
-                color: white;
+                background-color: #fff;
+                border-color: #626AEF;
+                color: #626AEF;
+
             }
         }
-
-
 
     }
 }

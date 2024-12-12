@@ -14,8 +14,12 @@ function paddingZero(num) {
     return num < 10 ? `0${num}` : `${num}`;
 }
 
+async function saveAsJson(jsonData, fileName) {
+    return await window.electron.saveJsonToFile(JSON.stringify(jsonData), fileName);
+}
 
 export {
     time2minutes,
-    minutes2time
+    minutes2time,
+    saveAsJson
 }
