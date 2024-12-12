@@ -7,7 +7,7 @@ function createWindow() {
     width: 800,
     height: 600,
     title: "DeskGo",
-    icon: path.join(__dirname, "assets/icon.png"),
+    // icon: path.join(__dirname, "assets/icon.png"),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
