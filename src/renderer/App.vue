@@ -6,23 +6,38 @@ import TopNav from './components/TopNav.vue'
 // Pinia
 import { useGlobalStore } from './stores/global.js'
 import { useSettingStore } from './stores/setting.js'
+import { useCourseStore } from './stores/course.js'
 
 const globalStore = useGlobalStore()
 const settingStore = useSettingStore()
+const courseStore = useCourseStore()
 
+// 顶部文字
 const topNavText = computed(() => globalStore.getNavInfo)
 
+// 加载课程表函数
+const loadSchedule = async () => {
+  const res = await window.electron.loadJsonFromFile('schedule.json');
+  console.log(res);
+  if (res === -1) {
+    ElMessage.error("加载课程表失败!");
+  } else if (res === -2) {
+    ElMessage.warning("本地没有课程表，请先创建!");
+  } else {
+    ElMessage.success("加载课程表成功!");
+  }
+}
+
+// 挂载后，加载用户设置文件
 onMounted(async () => {
   const res = await settingStore.loadData();
-  
   if (res === -1) {
     ElMessage.error("加载用户设置失败!");
   } else if (res === 0) {
     ElMessage.warning("本地没有用户设置，请先设置!");
   } else {
-    ElMessage.success("加载用户设置成功!");
-    console.log(settingStore.settingData);
-
+    // ElMessage.success("加载用户设置成功!");
+    loadSchedule();
   }
 });
 </script>

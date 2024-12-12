@@ -51,7 +51,7 @@ function createWindow() {
     try {
       // 检查文件是否存在
       if (!fs.existsSync(filePath)) {
-        return -1;
+        return -2;
       }
       // 读取文件
       const jsonData = fs.readFileSync(filePath, "utf-8");

@@ -1,14 +1,31 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 
 // Pinia
 import { useSettingStore } from '@/stores/setting.js'
+import { useCourseStore } from '@/stores/course.js'
+
+// utils
+import { time2minutes, minutes2time } from '@/utils/courseRelate';
 
 const settingStore = useSettingStore();
+const courseStore = useCourseStore();
 
-const { totalWeekNum } = settingStore.getSettingForm;
-console.log('测试', totalWeekNum);
-
+const { totalWeekNum, startTime, startDate, courseDuration, courseNum } = settingStore.getSettingForm;
+const endTime = '23:00'; // 结束时间
+const { getSchedule, setSchedule } = courseStore;
+const scheduleObject = ref(null);
+// const
+onMounted(() => {
+    console.log('挂载了');
+    getScheduleData()
+    
+});
+const getScheduleData = () => {
+    console.log('getScheduleData');
+    scheduleObject.value = getSchedule;
+    console.log('数据', scheduleObject.value);
+};
 
 defineOptions({
     name: 'CoursePage'
@@ -19,13 +36,18 @@ const tableHead = ref(['周一', '周二', '周三', '周四', '周五', '周六
 
 // 添加课程
 const tempCourseOption = ref(null);
-
 const addCourseDialog = ref(false);
 const addCourse = () => {
     addCourseDialog.value = true;
     const timeStamp = new Date().getTime();
     tempCourseOption.value = {
-        id: timeStamp
+        id: timeStamp,  // 时间戳作为id
+        name: '',
+        teacher: '',
+        room: '',
+        startTime: '',
+        endTime: '',
+        week: []
     };
     // ElMessage.success("模拟添加成功");
 };
@@ -33,25 +55,91 @@ const addCourse = () => {
 // 选择周数
 const activateWeeks = ref([]);
 onMounted(() => {
-    for(let i = 1; i <= totalWeekNum; i++){
+    for (let i = 1; i <= totalWeekNum; i++) {
         activateWeeks.value.push(i);
     }
-})
+});
 const weekHaveCourse = (e, i) => {
     if (!isActiveCourse(i)) activateWeeks.value.push(i);
     else activateWeeks.value.splice(activateWeeks.value.indexOf(i), 1); // 从目标开始，删除一个元素
-}
+};
 const isActiveCourse = (item) => {
     return activateWeeks.value.includes(item);
-}
+};
+
+// 关闭dialoag
 const closeDialog = () => {
     tempCourseOption.value = null;
     addCourseDialog.value = false;
-}
+};
+// 清除数据
+const clearData = () => {
+    tempCourseOption.value = null;
+    activateWeeks.value = [];
+    courseStartTime.value = '';
+    courseEndTime.value = '';
+    weekDay.value = null;
+};
+// 确认添加课程
 const saveCourse = () => {
     console.log(tempCourseOption.value);
+    tempCourseOption.value.startTime = courseStartTime.value;
+    tempCourseOption.value.endTime = courseEndTime.value;
+    tempCourseOption.value.week = activateWeeks.value;
+    console.log(tempCourseOption.value);
     
-}
+    setSchedule(tempCourseOption.value);
+    getScheduleData();
+    closeDialog();
+    clearData();
+
+};
+
+// 最小时间
+const courseStartTime = ref('');
+const courseEndTime = ref('');
+const closeWatchMinTime = watch(courseStartTime, (newValue, oldValue) => {
+    if (newValue !== undefined && oldValue !== undefined) {
+        const minutes = time2minutes(newValue);
+        courseEndTime.value = minutes2time(minutes + courseDuration);        
+    }
+});
+
+// 选择WeekDay
+const weekDay = ref(null);
+const weekDayList = ref([
+    {
+        id: 1,
+        name: '周一'
+    },
+    {
+        id: 2,
+        name: '周二'
+    },
+    {
+        id: 3,
+        name: '周三'
+    },
+    {
+        id: 4,
+        name: '周四'
+    },
+    {
+        id: 5,
+        name: '周五'
+    },
+    {
+        id: 6,
+        name: '周六'
+    },
+    {
+        id: 7,
+        name: '周日'
+    }
+]);
+const handleWeekDayChange = () => {
+    console.log(weekDay.value);
+};
 </script>
 
 <template>
@@ -65,26 +153,35 @@ const saveCourse = () => {
                 </el-col>
             </el-row>
         </div>
-        <el-dialog v-model="addCourseDialog" title="导入课表" width="500" align-center center :close-on-click-modal="false" @close="closeDialog">
+        <el-dialog v-model="addCourseDialog" title="导入课表" width="600" align-center center :close-on-click-modal="false"
+            @close="closeDialog">
             <el-form class="form-style">
                 <el-form-item label="课程名称:">
-                    <el-input clearable placeholder="请输入课程名称"></el-input>
+                    <el-input v-model="tempCourseOption.name" clearable placeholder="请输入课程名称"></el-input>
                 </el-form-item>
                 <el-form-item label="任课教师:">
-                    <el-input clearable placeholder="请输入任课教师"></el-input>
+                    <el-input v-model="tempCourseOption.teacher" clearable placeholder="请输入任课教师"></el-input>
                 </el-form-item>
                 <el-form-item label="上课教室:">
-                    <el-input clearable placeholder="请输入上课教室"></el-input>
+                    <el-input v-model="tempCourseOption.room" clearable placeholder="请输入上课教室"></el-input>
+                </el-form-item>
+                <el-form-item label="周几上课:">
+                    <el-radio-group fill="#626AEF" v-model="weekDay" @change="handleWeekDayChange">
+                        <el-radio-button v-for="item in weekDayList" :key="item.id" :value="item.id">
+                            {{ item.name }}
+                        </el-radio-button>
+                    </el-radio-group>
                 </el-form-item>
                 <el-form-item label="上课时间:">
                     <div class="flex space-between" style="width: 100%;">
-                        <el-time-select v-model="startTime" style="width: 45% " :max-time="endTime" placeholder="开始时间"
-                            start="08:30" step="00:15" end="18:30" />
+                        <el-time-select v-model="courseStartTime" style="width: 45% " placeholder="开始时间"
+                            :start="startTime" step="00:05" :end="endTime" />
                         <span>-</span>
-                        <el-time-select v-model="endTime" style="width: 45%" :min-time="startTime" placeholder="结束时间"
-                            start="08:30" step="00:15" end="18:30" />
+                        <el-time-select v-model="courseEndTime" style="width: 45%" :min-time="courseStartTime"
+                            placeholder="结束时间" :start="startTime" step="00:05" :end="endTime" />
                     </div>
                 </el-form-item>
+
                 <el-form-item label="上课周数:">
                     <!-- <el-button>设定</el-button> -->
                     <div style="flex-wrap: wrap;" class="flex start weeks">
@@ -97,8 +194,8 @@ const saveCourse = () => {
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
-                    <el-button @click="addCourseDialog = false">取消</el-button>
-                    <el-button type="primary" @click="saveCourse">
+                    <el-button round plain type="primary" @click="addCourseDialog = false">取消</el-button>
+                    <el-button round color="#626AEF" @click="saveCourse">
                         确认
                     </el-button>
                 </div>
