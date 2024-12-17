@@ -12,9 +12,14 @@ export const useCourseStore = defineStore('course', () => {
     const getSchedule = computed(() => {        
         return schedule.value
     })
-
+    const setAllSchedule = (jsonData) => {
+        console.log('jsonData');
+        schedule.value = JSON.parse(jsonData);        
+        console.log('jsonData2');
+    }
     return {
         setSchedule,
-        getSchedule
+        getSchedule,
+        setAllSchedule
     }
 })

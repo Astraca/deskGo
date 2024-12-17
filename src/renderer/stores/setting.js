@@ -8,12 +8,12 @@ export const useSettingStore = defineStore("setting", () => {
   const loadData = async () => {
     try {
       const data = await window.electron.loadJsonFromFile("setting.json");
-      
-      if (data === -1) {
-        settingForm.value = {};
+
+      if (data === -1 || data === -2) {
+        // settingForm.value = {};
         return 0;
       } else {
-        settingForm.value = data;
+        settingForm.value = JSON.parse(data);
         return 1;
       }
     } catch (err) {
@@ -23,7 +23,7 @@ export const useSettingStore = defineStore("setting", () => {
   };
   const saveData = async (data) => {
     try {
-      const res = await window.electron.saveJsonToFile(data, "setting.json");      
+      const res = await window.electron.saveJsonToFile(data, "setting.json");
       if (!res) {
         console.error("Error saving setting data");
       } else {
@@ -44,28 +44,32 @@ export const useSettingStore = defineStore("setting", () => {
   //     }
   //     alert("Token为空");
   //   };
+
   const settingForm = ref({
-    token: '',
+    token: "",
     totalWeekNum: null,
-    currentWeekNum: null,
-    courseDuration: null,
+    // currentWeekNum: null,
+    courseDuration: 45,
     courseNum: null,
-    startTime: null,
+    // startTime: null,
     startDate: null,
     remindMethod: "clock",
     remindTarget: 30,
+    timeList: []
   });
+
   const getSettingForm = computed(() => {
     return settingForm.value;
   });
+
   const setSettingForm = async (newValue) => {
     console.log("newValue is: ", newValue);
     settingForm.value = newValue;
     console.log("settingForm.value: ", settingForm.value);
-    const res =await saveData(JSON.stringify(settingForm.value));
-    console.log('文件保存', res);
-    
+    const res = await saveData(JSON.stringify(settingForm.value));
+    console.log("文件保存", res);
   };
+
   return {
     settingData,
     loadData,
