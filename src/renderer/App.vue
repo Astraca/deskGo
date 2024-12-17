@@ -17,7 +17,7 @@ const topNavText = computed(() => globalStore.getNavInfo)
 
 // 加载课程表函数
 const loadSchedule = async () => {
-  const res = await window.electron.loadJsonFromFile('schedule.json');
+  const res = await window.electron.loadJsonFromFile('course.json');
   console.log(res);
   if (res === -1) {
     ElMessage.error("加载课程表失败!");
