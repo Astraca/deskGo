@@ -55,6 +55,9 @@ function createWindow() {
       }
       // 读取文件
       const jsonData = fs.readFileSync(filePath, "utf-8");
+      if (!jsonData) {
+        return -2;
+      }
       return JSON.parse(jsonData);
     } catch (err) {
       console.error("Error loading Json", err);
