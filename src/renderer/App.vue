@@ -12,7 +12,7 @@ const globalStore = useGlobalStore()
 const settingStore = useSettingStore()
 const courseStore = useCourseStore()
 
-// 顶部文字
+ // 顶部文字
 const topNavText = computed(() => globalStore.getNavInfo)
 
 // 加载课程表函数
@@ -24,13 +24,16 @@ const loadSchedule = async () => {
   } else if (res === -2) {
     ElMessage.warning("本地没有课程表，请先创建!");
   } else {
-    ElMessage.success("加载课程表成功!");
+    // ElMessage.success("加载课程表成功!");
+    courseStore.setAllSchedule(res);  // 加载课程表数据到 store
   }
 }
 
 // 挂载后，加载用户设置文件
 onMounted(async () => {
   const res = await settingStore.loadData();
+  console.log('展示', res);
+  
   if (res === -1) {
     ElMessage.error("加载用户设置失败!");
   } else if (res === 0) {
