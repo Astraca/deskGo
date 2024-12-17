@@ -54,13 +54,38 @@ npm run elctron:dev
     Electron: 是否能够实现托盘。如何实现消息提醒。
   + 确定:
     配置信息和课程数据存储方式。
+  
 + 2024年12月8日
   + 使用TS时，跑electron报错
+  
 + 2024年12月9日
   + 重构为JS，但无法运行
+  
 + 2024年12月11日
+  
   + 成功运行并实现配置项本地文件保存
+  
 + 2024年12月12日
+  
   + 添加课程界面及相关功能实现(已实现课程添加并保存到本地文件)
+  
 + 2024年12月17日
-  + 存在问题： 添加课程时，增加空值检查，防止输入无效数据。
+  
+  + <p style="text-decoration: line-through;">存在问题： 添加课程时，增加空值检查，防止输入无效数据。（已增加）</p>
+  
+  + 实现了当前周课程筛查
+  
+  + ![image-20241217204229269](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217204229269.png)
+  
+  + 问题：之前的课程时间设置方式(添加课程的时候进行设置)不方便进行数据的渲染。因此，重新修改了这部分。通过在设置中心设置不同节课程的时间进行实现。最后在添加课程的时候，通过**选择第几节**的方式来进行。
+  
+  + ![image-20241217203149329](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217203149329.png)
+  
+  + ![image-20241217203656488](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217203656488.png)
+  
+    在这部分设置中，用户选定开始时间后会根据前面设置的上课时长去自动计算结束时间。
+  
+  + 优化：如果用户在设置中心进行修改，但是没有保存设置就切换到其他页面进行一个提醒。通过路由守卫进行。
+  + ![image-20241217204038111](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217204038111.png)
+  + ![image-20241217204112389](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217204112389.png)
+  + 问题：需要修改课程添加部分
