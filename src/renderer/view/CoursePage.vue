@@ -1,18 +1,21 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 
+// 组件
+import CourseTime from '@/components/CourseTime.vue';
+
 // Pinia
 import { storeToRefs } from 'pinia';
 import { useSettingStore } from '@/stores/setting.js'
 import { useCourseStore } from '@/stores/course.js'
 
 // utils
-import { time2minutes, minutes2time, saveAsJson } from '@/utils/courseRelate';
+import { time2minutes, minutes2time, saveAsJson, getCurrentWeek, calculateWeekAndDate } from '@/utils/courseRelate';
 
 const settingStore = useSettingStore();
 const courseStore = useCourseStore();
 
-const { totalWeekNum, startTime, courseDuration } = settingStore.getSettingForm;
+const { totalWeekNum, startTime, courseDuration } = settingStore.getSettingForm || JSON.parse(settingStore.getSettingForm);
 const endTime = '23:00'; // 结束时间
 const { getSchedule, setSchedule } = courseStore;
 
@@ -58,10 +61,13 @@ const activeDefaultWeeks = () => {
     }
 }
 
+// 选择有当前课程的周数
 const weekHaveCourse = (e, i) => {
     if (!isActiveCourse(i)) activateWeeks.value.push(i);
     else activateWeeks.value.splice(activateWeeks.value.indexOf(i), 1); // 从目标开始，删除一个元素
 };
+
+// 判断之前是否已经添加过当前周数，用于取消选中和添加选中
 const isActiveCourse = (item) => {
     return activateWeeks.value.includes(item);
 };
@@ -82,28 +88,37 @@ const clearData = () => {
 
 // 确认添加课程
 const saveCourse = async () => {
-    // TODO: 安全校验
     tempCourseOption.value.startTime = courseStartTime.value;
     tempCourseOption.value.endTime = courseEndTime.value;
     tempCourseOption.value.week = activateWeeks.value;
     tempCourseOption.value.weekDay = weekDay.value;
+
+    // 校验数据
+    for (const key in tempCourseOption.value) {
+        if ((key === 'week' && tempCourseOption.value[key].length === 0) || !!!tempCourseOption.value[key]) {
+            ElMessage.error("请完整填写课程信息!");
+            return;
+        }
+    }
+
+    // 保存到 store 和 存储到本地
     setSchedule(tempCourseOption.value);
-    console.log(scheduleObject.value);
     const res = await saveAsJson(scheduleObject.value, 'course.json');
-    if(res){
+
+    if (res) {
         ElMessage.success("添加成功!")
-    }else{
+        closeDialog();
+        clearData();
+    } else {
         ElMessage.error("添加失败!")
     }
-    closeDialog();
-    clearData();
 };
 
 // 最小时间
 const courseStartTime = ref('');
 const courseEndTime = ref('');
-const closeWatchMinTime = watch(courseStartTime, (newValue, oldValue) => {
-    if (newValue !== undefined && oldValue !== undefined) {
+watch(courseStartTime, (newValue, oldValue) => {
+    if (newValue !== undefined && oldValue !== undefined && newValue !== '') {
         const minutes = time2minutes(newValue);
         courseEndTime.value = minutes2time(minutes + courseDuration);
     }
@@ -141,15 +156,54 @@ const weekDayList = ref([
         name: '周日'
     }
 ]);
+
 const handleWeekDayChange = () => {
     console.log(weekDay.value);
 };
+
+// 课程数据
+const totalCourseData = getSchedule;
+
+const currentWeekCourse = ref([]);
+
+const getCurrentWeekCourses = () => {
+    if (totalCourseData.length === 0) {
+        ElMessage.error("暂无课程数据");
+        return;
+    }
+    const currentWeek = getCurrentWeek();  // 当前周
+    totalCourseData.forEach(item => {
+        if (item.week.includes(currentWeek)) {  // 当前课程在本周有课程安排
+            currentWeekCourse.value.push(item);
+        }
+    })
+}
+
+// 测试按钮
+const testBtn = () => {
+    console.log('测试部分');
+    // calculateWeekAndDate('2024-09-02', 18)
+    console.log(getCurrentWeekCourses());
+    console.log(currentWeekCourse.value);
+
+    console.log('测试部分----end');
+}
 </script>
 
 <template>
     <div class="course-page">
+        <div>
+            {{ useSettingStore().getSettingForm }}
+            <h3>测试查看</h3>
+            {{ totalCourseData }}
+        </div>
         <div class="course-add">
             <el-row justify="end">
+                <el-col :span="4" class="course-add-btn">
+                    <el-button round plain type="primary" @click="testBtn">
+                        测试按钮
+                    </el-button>
+                </el-col>
                 <el-col :span="4" class="course-add-btn">
                     <el-button size="large" round color="#626AEF" :icon="Plus" type="primary" @click="addCourse">
                         添加课程
@@ -209,19 +263,28 @@ const handleWeekDayChange = () => {
             <table>
                 <thead>
                     <tr>
-                        <td>时间</td>
+                        <td style="width: 100px;">时间</td>
                         <td v-for="item in tableHead" :key="item"> {{ item }}</td>
                     </tr>
                 </thead>
 
                 <tbody>
-                    <tr>
-                        <td>2</td>
+                    <tr v-for="(item, index) in 12" :key="index">
+                        <td>
+                            <CourseTime />
+                        </td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
                         <td>1</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
     </div>
 </template>
 
@@ -250,22 +313,28 @@ const handleWeekDayChange = () => {
         width: 100%;
         height: 100%;
         // background-color: blue;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        // display: flex;
+        // align-items: center;
+        // justify-content: center;
 
         table {
             width: 80%;
             height: 80%;
+            margin: 0 auto;
             // max-height: 90%;
             // background-color: red;
+            border: 1px solid black;
             border-collapse: collapse;
+
+            td {
+                border: 1px solid black;
+                color: black;
+            }
 
             thead {
                 td {
                     height: 40px;
-                    border: 2px solid black;
-                    color: black;
+                    // border: 2px solid black;
                 }
             }
         }
