@@ -7,8 +7,10 @@ const hello = ref('来写')
 <template>
     <div class="container">
         <div class="info-box">
-            <h1>404 Not Found</h1>
-            <h2>来到了一片荒野~~</h2>
+            <div style="width: 50%; margin: 0 auto;">
+                <img src="../assets/404.png" alt="404 Not Found" style="object-fit: contain; width: 100%; height: 100%; margin: 0 auto;">
+            </div>
+            <h2>ಥ_ಥ 来到了一片荒野~~</h2>
         </div>
     </div>
 </template>
@@ -26,13 +28,15 @@ const hello = ref('来写')
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-
+    overflow:  auto;
     .info-box {
 
         h1,
         h2 {
             width: 100%;
             margin: 20px 0;
+            color: #2993fd;
+            font-size: xx-large;
         }
     }
 
