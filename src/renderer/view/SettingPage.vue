@@ -126,6 +126,7 @@ const dialogShow = () => {
         return;
     } else {
         showTimeDialog.value = true;
+        console.log('timeList', timeList.value);
     }
 }
 
@@ -135,27 +136,25 @@ onMounted(() => {
     if (settingForm.value.timeList.length > 0) {
         timeList.value = settingForm.value.timeList;
     }
-
 })
 // 监听课程节数变化，生成列表
 watch(() => settingForm.value.courseNum, (newValue, oldValue) => {
-    timeList.value = [];
-
     if (newValue > 20) {
         ElMessage.error('每天课程不能超过20节!');
         settingForm.value.courseNum = '';
         return;
     }
     setTimeout(() => {
-        for (let i = 1; i <= newValue; i++) {
+        timeList.value = [];
+        for (let i = 0; i < newValue; i++) {
             const obj = {
-                courseId: i,
+                courseId: i + 1,
                 startTime: '',
                 endTime: '',
             }
             timeList.value.push(obj);
         }
-    }, 800)
+    }, 500)
 });
 
 // 课时开始时间变化后修改对应的结束时间
