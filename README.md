@@ -89,3 +89,6 @@ npm run elctron:dev
   + ![image-20241217204038111](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217204038111.png)
   + ![image-20241217204112389](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217204112389.png)
   + 问题：需要修改课程添加部分
++ 问题：
+  + 是否可以建立不同学校的配置文件
+  + 是否可以增加OCR识别(课程表文件导入？PDF/EXCEL?)
