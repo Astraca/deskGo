@@ -26,6 +26,7 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@vue/devtools": "^7.6.8",
     "concurrently": "^9.1.0",
     "sass": "^1.82.0",
     "scss": "^0.2.4",
