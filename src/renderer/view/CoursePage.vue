@@ -84,6 +84,7 @@ const clearData = () => {
     courseStartTime.value = '';
     courseEndTime.value = '';
     weekDay.value = null;
+    timeList = settingStore.getSettingForm.timeList;
 };
 
 // 确认添加课程
@@ -115,12 +116,16 @@ const saveCourse = async () => {
 };
 
 // 最小时间
+let timeList = settingStore.getSettingForm.timeList;
 const courseStartTime = ref('');
 const courseEndTime = ref('');
-watch(courseStartTime, (newValue, oldValue) => {
+const getAllTime = () => {
+    timeList = settingStore.getSettingForm.timeList;
+};
+watch(courseStartTime, (newValue, oldValue) => {    
     if (newValue !== undefined && oldValue !== undefined && newValue !== '') {
-        const minutes = time2minutes(newValue);
-        courseEndTime.value = minutes2time(minutes + courseDuration);
+        timeList = timeList.filter(item => item.courseId > newValue)
+        courseEndTime.value = newValue + 1;
     }
 });
 
@@ -193,7 +198,7 @@ const testBtn = () => {
 <template>
     <div class="course-page">
         <div>
-            {{ useSettingStore().getSettingForm }}
+            {{ useSettingStore().getSettingForm.timeList }}
             <h3>测试查看</h3>
             {{ totalCourseData }}
         </div>
@@ -232,11 +237,26 @@ const testBtn = () => {
                 </el-form-item>
                 <el-form-item label="上课时间:">
                     <div class="flex space-between" style="width: 100%;">
-                        <el-time-select v-model="courseStartTime" style="width: 45% " placeholder="开始时间"
-                            :start="startTime" step="00:05" :end="endTime" />
-                        <span>-</span>
-                        <el-time-select v-model="courseEndTime" style="width: 45%" :min-time="courseStartTime"
-                            placeholder="结束时间" :start="startTime" step="00:05" :end="endTime" />
+                        <!-- <el-time-select v-model="courseStartTime" style="width: 45% " placeholder="开始时间"
+                            :start="startTime" step="00:05" :end="endTime" /> -->
+                            <el-select
+                              v-model="courseStartTime"
+                              placeholder="开始时间"
+                              @focus="getAllTime"
+                            >
+                                <el-option v-for="item in timeList" :key="item.courseId" :label="`第${item.courseId}节`" :value="item.courseId" />
+                            </el-select>
+                            <!-- <el-option v-for="item in timeList" :key="item.courseId" :label="`第${item.courseId}节`" :value="item.courseId" /> -->
+                        <span>&nbsp;—&nbsp;</span>
+                        <!-- <el-time-select v-model="courseEndTime" style="width: 45%" :min-time="courseStartTime"
+                            placeholder="结束时间" :start="startTime" step="00:05" :end="endTime" /> -->
+                            <el-select
+                              v-model="courseEndTime"
+                              placeholder="结束时间"
+
+                            >
+                                <el-option v-for="item in timeList" :key="item.courseId" :label="`第${item.courseId}节`" :value="item.courseId" />
+                            </el-select>
                     </div>
                 </el-form-item>
 
