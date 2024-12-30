@@ -184,6 +184,9 @@ const getCurrentWeekCourses = () => {
     })
 }
 
+// 课程表渲染
+const timeListRender = settingStore.getSettingForm.timeList;
+
 // 测试按钮
 const testBtn = () => {
     console.log('测试部分');
@@ -289,9 +292,9 @@ const testBtn = () => {
                 </thead>
 
                 <tbody>
-                    <tr v-for="(item, index) in 12" :key="index">
+                    <tr v-for="item in timeListRender" :key="item.courseId">
                         <td>
-                            <CourseTime />
+                            <CourseTime :startTime="item.startTime" :endTime="item.endTime"/>
                         </td>
                         <td>1</td>
                         <td>1</td>
