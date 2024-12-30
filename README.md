@@ -92,3 +92,14 @@ npm run elctron:dev
 + 问题：
   + 是否可以建立不同学校的配置文件
   + 是否可以增加OCR识别(课程表文件导入？PDF/EXCEL?)
++ 2024年12月30日
+  + 修改新增课程时不再选择具体时间，而是通过选择课程是当天第几节的方式进行；在选择完开始时间后，默认结束时间为一节课的时间差。
+  + ![image-20241230220654445](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241230220654445.png)
+  + 实现每一节课程的时间在组件中的传递
+  + ![image-20241230220710827](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241230220710827.png)
+  + 初步实现了在课程表中展示当前周的课程的效果
+  + ![image-20241230220732484](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241230220732484.png)
+  + 问题：
+    + 添加课程后不能立刻渲染
+    + 无法对添加的课程进行修改
+
