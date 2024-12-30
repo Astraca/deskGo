@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 
 // 组件
 import CourseTime from '@/components/CourseTime.vue';
+import CourseInfo from '@/components/CourseInfo.vue';
 
 // Pinia
 import { storeToRefs } from 'pinia';
@@ -31,7 +32,33 @@ defineOptions({
 });
 
 const tableHead = ref(['周一', '周二', '周三', '周四', '周五', '周六', '周日']);
+const courseFlag = ref([]);
+// onMounted(() => {
+//     // console.log(settingStore.getSettingForm.timeList);
 
+// });
+const temp = settingStore.getSettingForm.timeList;
+temp.forEach(() => {
+    const tempFlag = [];
+    for (let i = 0; i < tableHead.value.length; i++) {
+        tempFlag.push(false);
+    }
+    courseFlag.value.push(tempFlag);
+})
+// 加载课程表函数
+const loadSchedule = async () => {
+    const res = await window.electron.loadJsonFromFile('course.json');
+    console.log(res);
+    if (res === -1) {
+        ElMessage.error("加载课程表失败!");
+    } else if (res === -2) {
+        ElMessage.warning("本地没有课程表，请先创建!");
+    } else {
+        // ElMessage.success("加载课程表成功!");
+        courseStore.setAllSchedule(res);  // 加载课程表数据到 store
+        getNewData();
+    }
+}
 
 // 添加课程
 const tempCourseOption = ref({});
@@ -110,6 +137,7 @@ const saveCourse = async () => {
         ElMessage.success("添加成功!")
         closeDialog();
         clearData();
+        loadSchedule();
     } else {
         ElMessage.error("添加失败!")
     }
@@ -122,7 +150,7 @@ const courseEndTime = ref('');
 const getAllTime = () => {
     timeList = settingStore.getSettingForm.timeList;
 };
-watch(courseStartTime, (newValue, oldValue) => {    
+watch(courseStartTime, (newValue, oldValue) => {
     if (newValue !== undefined && oldValue !== undefined && newValue !== '') {
         timeList = timeList.filter(item => item.courseId > newValue)
         courseEndTime.value = newValue + 1;
@@ -169,6 +197,10 @@ const handleWeekDayChange = () => {
 // 课程数据
 const totalCourseData = getSchedule;
 
+const getNewData = () => {
+    totalCourseData = getSchedule;
+}
+
 const currentWeekCourse = ref([]);
 
 const getCurrentWeekCourses = () => {
@@ -184,15 +216,74 @@ const getCurrentWeekCourses = () => {
     })
 }
 
+
+
 // 课程表渲染
 const timeListRender = settingStore.getSettingForm.timeList;
+const timeListObject = ref({});
+timeListRender.map(item => {
+    const temp = [];
+    totalCourseData.forEach(course => {
+        if (item.courseId == course.startTime) {
+            temp.push(course);
+        }
+    });
+    const data = {};
+    temp.forEach(item => {
+        data[item.weekDay] = item;
+    });
 
+    item['courses'] = temp;
+    timeListObject.value[item.courseId] = {
+        data: data,
+        startTime: item.startTime,
+        endTime: item.endTime
+    };
+});
+
+
+// 合并行数
+const getRowSpanNum = (key, value) => {
+    if (courseFlag.value) {
+        const xAxis = value.weekDay - 1;
+        for (let i = value.startTime; i <= value.endTime; ++i) {
+            courseFlag.value[i - 1][xAxis] = true;
+        }
+        // console.log('jieguo', courseFlag.value);
+        return value.endTime - value.startTime + 1;
+    }
+};
+const mergeSpan = (day, data) => {
+    console.log(day, data);
+    const { startTime, endTime } = data;
+    console.log(startTime, endTime);
+    for (let i = startTime; i < endTime; i++) {
+        console.log('修改', courseFlag.value[i][day - 1]);
+
+        courseFlag.value[i][day - 1] = true;
+        console.log('修改后', courseFlag.value[i][day - 1]);
+        console.log('---------------------------------------');
+    }
+    return endTime - startTime + 1;
+}
+const hasMergeColAndRow = (day, row) => {
+    let result;
+    if (courseFlag.value[row][day - 1] === false) {
+        result = true;
+    } else {
+        result = false;
+    }
+    console.log(row, day, result);
+
+    return result;
+}
 // 测试按钮
 const testBtn = () => {
     console.log('测试部分');
     // calculateWeekAndDate('2024-09-02', 18)
-    console.log(getCurrentWeekCourses());
-    console.log(currentWeekCourse.value);
+    // console.log(getCurrentWeekCourses());
+    // console.log(currentWeekCourse.value);
+    console.log(timeListRender);
 
     console.log('测试部分----end');
 }
@@ -200,11 +291,11 @@ const testBtn = () => {
 
 <template>
     <div class="course-page">
-        <div>
+        <!-- <div>
             {{ useSettingStore().getSettingForm.timeList }}
             <h3>测试查看</h3>
             {{ totalCourseData }}
-        </div>
+        </div> -->
         <div class="course-add">
             <el-row justify="end">
                 <el-col :span="4" class="course-add-btn">
@@ -242,24 +333,18 @@ const testBtn = () => {
                     <div class="flex space-between" style="width: 100%;">
                         <!-- <el-time-select v-model="courseStartTime" style="width: 45% " placeholder="开始时间"
                             :start="startTime" step="00:05" :end="endTime" /> -->
-                            <el-select
-                              v-model="courseStartTime"
-                              placeholder="开始时间"
-                              @focus="getAllTime"
-                            >
-                                <el-option v-for="item in timeList" :key="item.courseId" :label="`第${item.courseId}节`" :value="item.courseId" />
-                            </el-select>
-                            <!-- <el-option v-for="item in timeList" :key="item.courseId" :label="`第${item.courseId}节`" :value="item.courseId" /> -->
+                        <el-select v-model="courseStartTime" placeholder="开始时间" @focus="getAllTime">
+                            <el-option v-for="item in timeList" :key="item.courseId" :label="`第${item.courseId}节`"
+                                :value="item.courseId" />
+                        </el-select>
+                        <!-- <el-option v-for="item in timeList" :key="item.courseId" :label="`第${item.courseId}节`" :value="item.courseId" /> -->
                         <span>&nbsp;—&nbsp;</span>
                         <!-- <el-time-select v-model="courseEndTime" style="width: 45%" :min-time="courseStartTime"
                             placeholder="结束时间" :start="startTime" step="00:05" :end="endTime" /> -->
-                            <el-select
-                              v-model="courseEndTime"
-                              placeholder="结束时间"
-
-                            >
-                                <el-option v-for="item in timeList" :key="item.courseId" :label="`第${item.courseId}节`" :value="item.courseId" />
-                            </el-select>
+                        <el-select v-model="courseEndTime" placeholder="结束时间">
+                            <el-option v-for="item in timeList" :key="item.courseId" :label="`第${item.courseId}节`"
+                                :value="item.courseId" />
+                        </el-select>
                     </div>
                 </el-form-item>
 
@@ -282,28 +367,44 @@ const testBtn = () => {
                 </div>
             </template>
         </el-dialog>
+        <!-- {{ timeListRender }} -->
+
         <div class="time-table">
             <table>
                 <thead>
                     <tr>
-                        <td style="width: 100px;">时间</td>
+                        <td>时间</td>
                         <td v-for="item in tableHead" :key="item"> {{ item }}</td>
                     </tr>
                 </thead>
 
                 <tbody>
-                    <tr v-for="item in timeListRender" :key="item.courseId">
-                        <td>
-                            <CourseTime :startTime="item.startTime" :endTime="item.endTime"/>
-                        </td>
-                        <td>1</td>
-                        <td>1</td>
-                        <td>1</td>
-                        <td>1</td>
-                        <td>1</td>
-                        <td>1</td>
-                        <td>1</td>
-                    </tr>
+
+                    <template v-if="timeListObject">
+                        <tr v-for="(value, key, index) in timeListObject" :key="index">
+                            <td>
+                                <CourseTime :startTime="value.startTime" :endTime="value.endTime" />
+                            </td>
+                            <template v-for="day in tableHead.length">
+                                <template v-if="value.data[day]">
+                                    <!-- <td :rowspan="value.data[item].endTime - value.data[item].startTime + 1"> -->
+                                    <td v-if="hasMergeColAndRow(day, index)" :rowspan="mergeSpan(day, value.data[day])">
+                                        <!-- :rowspan="value.data[day].endTime - value.data[day].startTime + 1"> -->
+                                        <CourseInfo :courseName="value.data[day].name"
+                                            :courseTeacher="value.data[day].teacher"
+                                            :courseRoom="value.data[day].room" />
+                                    </td>
+                                    <!-- <td></td> -->
+                                </template>
+                                <template v-else>
+                                    <td v-if="hasMergeColAndRow(day, index)"></td>
+                                    <!-- {{ value.data }} -->
+
+
+                                </template>
+                            </template>
+                        </tr>
+                    </template>
                 </tbody>
             </table>
         </div>
@@ -315,15 +416,17 @@ const testBtn = () => {
 .course-page {
     height: 100%;
     width: 100%;
-    // background-color: #f6f6f723;
+    // background-color: pink;
     border-radius: 20px;
     // padding: 20px;
-    color: white;
+    // color: white;
     text-align: center;
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-
+    overflow: auto;
+    padding: 20px;
+    box-sizing: border-box;
     // 添加课程
     .course-add {
         width: 80%;
@@ -333,30 +436,39 @@ const testBtn = () => {
 
     // 课程表样式
     .time-table {
-        width: 100%;
-        height: 100%;
+        width: 80%;
+        // height: 100%;
+        // margin: 20px 0;
         // background-color: blue;
         // display: flex;
         // align-items: center;
         // justify-content: center;
+        // overflow: auto;
 
         table {
-            width: 80%;
-            height: 80%;
+            width: 100%;
+            height: 100%;
             margin: 0 auto;
             // max-height: 90%;
             // background-color: red;
-            border: 1px solid black;
+            // border: 1px solid black;
             border-collapse: collapse;
-
+            margin-bottom: 20px 0;
+            // background-color: red;
             td {
                 border: 1px solid black;
                 color: black;
+                width: 80px;
+                min-width: 80px;
+                max-width: 80px;
             }
 
             thead {
                 td {
                     height: 40px;
+                    width: 80px;
+                    min-width: 80px;
+                    max-width: 80px;
                     // border: 2px solid black;
                 }
             }
