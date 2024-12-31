@@ -11,28 +11,32 @@ import { useSettingStore } from '@/stores/setting.js'
 import { useCourseStore } from '@/stores/course.js'
 
 // utils
-import { time2minutes, minutes2time, saveAsJson, getCurrentWeek, calculateWeekAndDate } from '@/utils/courseRelate';
-
-const settingStore = useSettingStore();
-const courseStore = useCourseStore();
-
-const { totalWeekNum, startTime, courseDuration } = settingStore.getSettingForm || JSON.parse(settingStore.getSettingForm);
-const endTime = '23:00'; // 结束时间
-const { getSchedule, setSchedule } = courseStore;
-
-const scheduleObject = computed(() => getSchedule);
-// const
-// onMounted(() => {
-//     console.log('挂载了');
-//     console.log('当前 schedule:', scheduleObject.value);
-// });
+import { getTodaysWeekDay, saveAsJson, getCurrentWeek, calculateWeekAndDate } from '@/utils/courseRelate';
 
 defineOptions({
     name: 'CoursePage'
 });
 
+const settingStore = useSettingStore();
+const courseStore = useCourseStore();
+
+const { totalWeekNum } = settingStore.getSettingForm || JSON.parse(settingStore.getSettingForm);
+
+const { getSchedule, setSchedule } = courseStore;
+
+const scheduleObject = computed(() => getSchedule);
+const dayWeekRelation = ref(null);
+onMounted(() => {
+    const { startDate, totalWeekNum } = settingStore.getSettingForm;
+    dayWeekRelation.value = calculateWeekAndDate(startDate.split('T')[0], totalWeekNum);
+})
+
+
 const tableHead = ref(['周一', '周二', '周三', '周四', '周五', '周六', '周日']);
 const courseFlag = ref([]);
+const dialogTitle = ref('');
+const confirmButtonText = ref('保存');
+const timeListObject = ref({});
 // onMounted(() => {
 //     // console.log(settingStore.getSettingForm.timeList);
 
@@ -48,7 +52,6 @@ temp.forEach(() => {
 // 加载课程表函数
 const loadSchedule = async () => {
     const res = await window.electron.loadJsonFromFile('course.json');
-    console.log(res);
     if (res === -1) {
         ElMessage.error("加载课程表失败!");
     } else if (res === -2) {
@@ -56,7 +59,7 @@ const loadSchedule = async () => {
     } else {
         // ElMessage.success("加载课程表成功!");
         courseStore.setAllSchedule(res);  // 加载课程表数据到 store
-        getNewData();
+        // getNewData();
     }
 }
 
@@ -65,6 +68,10 @@ const tempCourseOption = ref({});
 const addCourseDialog = ref(false);
 const addCourse = () => {
     addCourseDialog.value = true;
+    dialogTitle.value = '添加课程';
+    confirmButtonText.value = '保存';
+    courseEndTime.value = '';
+    globalFlag.value = true;
     activeDefaultWeeks(); // 默认选中全部周数
     const timeStamp = new Date().getTime();  // 时间戳作为id
     tempCourseOption.value = {
@@ -87,7 +94,10 @@ const activeDefaultWeeks = () => {
         activateWeeks.value.push(i);
     }
 }
-
+// 已选择周数回显
+const choicedWeeks = (weekList) => {
+    activateWeeks.value = weekList
+}
 // 选择有当前课程的周数
 const weekHaveCourse = (e, i) => {
     if (!isActiveCourse(i)) activateWeeks.value.push(i);
@@ -102,25 +112,38 @@ const isActiveCourse = (item) => {
 // 关闭 dialoag
 const closeDialog = () => {
     addCourseDialog.value = false;
+    clearData();
 };
 
 // 清除数据
+const clearFlag = ref(false);
 const clearData = () => {
     tempCourseOption.value = {};
     activateWeeks.value = [];
     courseStartTime.value = '';
     courseEndTime.value = '';
-    weekDay.value = null;
+    weekDay.value = getTodaysWeekDay();
+    globalFlag.value = false;
+    clearFlag.value = true;
     timeList = settingStore.getSettingForm.timeList;
 };
-
+const cancleButton = () => {
+    clearData();
+    addCourseDialog.value = false;
+    clearFlag.value = false;
+}
 // 确认添加课程
 const saveCourse = async () => {
     tempCourseOption.value.startTime = courseStartTime.value;
     tempCourseOption.value.endTime = courseEndTime.value;
     tempCourseOption.value.week = activateWeeks.value;
     tempCourseOption.value.weekDay = weekDay.value;
-
+    if(confirmButtonText.value == '保存'){
+        totalCourseData.value.push(tempCourseOption.value);
+    } else if (confirmButtonText.value == '更新') {
+        console.log(tempCourseOption.value, totalCourseData.value);
+        
+    }
     // 校验数据
     for (const key in tempCourseOption.value) {
         if ((key === 'week' && tempCourseOption.value[key].length === 0) || !!!tempCourseOption.value[key]) {
@@ -130,16 +153,20 @@ const saveCourse = async () => {
     }
 
     // 保存到 store 和 存储到本地
+    // TODO: 更新的时候需要修改此处的逻辑
     setSchedule(tempCourseOption.value);
-    const res = await saveAsJson(scheduleObject.value, 'course.json');
+    const res = await saveAsJson(totalCourseData.value, 'course.json');
 
     if (res) {
-        ElMessage.success("添加成功!")
         closeDialog();
         clearData();
         loadSchedule();
+        renderData();
+        ElMessage.success(`${confirmButtonText.value}成功!`);
+        // getNewData();
+        // getCurrentWeekCourses();
     } else {
-        ElMessage.error("添加失败!")
+        ElMessage.error(`${confirmButtonText.value}失败!`)
     }
 };
 
@@ -147,18 +174,34 @@ const saveCourse = async () => {
 let timeList = settingStore.getSettingForm.timeList;
 const courseStartTime = ref('');
 const courseEndTime = ref('');
+const globalFlag = ref(false);
 const getAllTime = () => {
     timeList = settingStore.getSettingForm.timeList;
 };
 watch(courseStartTime, (newValue, oldValue) => {
-    if (newValue !== undefined && oldValue !== undefined && newValue !== '') {
-        timeList = timeList.filter(item => item.courseId > newValue)
-        courseEndTime.value = newValue + 1;
+    if (globalFlag.value === false) {
+        if (newValue !== undefined && newValue >= courseEndTime.value) {
+            timeList = timeList.filter(item => item.courseId > newValue);
+            if (dialogTitle.value === '修改课程信息') {
+
+                courseEndTime.value = newValue + 1;
+            }
+        }
+    } else {
+
+        if (newValue !== undefined && oldValue !== undefined && newValue !== '') {
+            timeList = timeList.filter(item => item.courseId > newValue);
+            courseEndTime.value = newValue + 1;
+        }
     }
 });
 
 // 选择WeekDay
 const weekDay = ref(null);
+// onMounted(() => {
+//     // 获取当前
+//     weekDay.value = getTodaysWeekDay();
+// })
 const weekDayList = ref([
     {
         id: 1,
@@ -195,51 +238,71 @@ const handleWeekDayChange = () => {
 };
 
 // 课程数据
-const totalCourseData = getSchedule;
+const totalCourseData = computed(() => getSchedule);
+onMounted(() => {
+    weekDay.value = getTodaysWeekDay();
+    // getNewData();
+    // getCurrentWeekCourses();
+    renderData();
+});
 
-const getNewData = () => {
-    totalCourseData = getSchedule;
-}
+// 获取新数据
+// const getNewData = () => {
+//     totalCourseData.value = getSchedule;
+// }
 
+// 当前周课程
 const currentWeekCourse = ref([]);
-
+const isRightCourse = (data) => {
+    const currentWeek = getCurrentWeek(dayWeekRelation.value);  // 当前周
+    const { week } = data;    
+    if(week.includes(currentWeek)){
+        return true;
+    }
+    return false;
+}
 const getCurrentWeekCourses = () => {
     if (totalCourseData.length === 0) {
         ElMessage.error("暂无课程数据");
         return;
     }
-    const currentWeek = getCurrentWeek();  // 当前周
-    totalCourseData.forEach(item => {
+    const currentWeek = getCurrentWeek(dayWeekRelation.value);  // 当前周
+    console.log(totalCourseData.value);
+    
+    totalCourseData.value.forEach(item => {
         if (item.week.includes(currentWeek)) {  // 当前课程在本周有课程安排
             currentWeekCourse.value.push(item);
         }
     })
 }
 
-
-
 // 课程表渲染
 const timeListRender = settingStore.getSettingForm.timeList;
-const timeListObject = ref({});
-timeListRender.map(item => {
-    const temp = [];
-    totalCourseData.forEach(course => {
-        if (item.courseId == course.startTime) {
-            temp.push(course);
-        }
-    });
-    const data = {};
-    temp.forEach(item => {
-        data[item.weekDay] = item;
-    });
+// onMounted(() => {
+//     renderData();
+// })
 
-    item['courses'] = temp;
-    timeListObject.value[item.courseId] = {
-        data: data,
-        startTime: item.startTime,
-        endTime: item.endTime
-    };
-});
+const renderData = () => {    
+    timeListRender.map(item => {
+        const temp = [];
+        totalCourseData.value.forEach(course => {
+            if ((item.courseId == course.startTime) && isRightCourse(course)) {
+                temp.push(course);
+            }
+        });
+        const data = {};
+        temp.forEach(item => {
+            data[item.weekDay] = item;
+        });
+
+        item['courses'] = temp;
+        timeListObject.value[item.courseId] = {
+            data: data,
+            startTime: item.startTime,
+            endTime: item.endTime
+        };
+    });
+}
 
 
 // 合并行数
@@ -249,20 +312,13 @@ const getRowSpanNum = (key, value) => {
         for (let i = value.startTime; i <= value.endTime; ++i) {
             courseFlag.value[i - 1][xAxis] = true;
         }
-        // console.log('jieguo', courseFlag.value);
         return value.endTime - value.startTime + 1;
     }
 };
 const mergeSpan = (day, data) => {
-    console.log(day, data);
     const { startTime, endTime } = data;
-    console.log(startTime, endTime);
     for (let i = startTime; i < endTime; i++) {
-        console.log('修改', courseFlag.value[i][day - 1]);
-
         courseFlag.value[i][day - 1] = true;
-        console.log('修改后', courseFlag.value[i][day - 1]);
-        console.log('---------------------------------------');
     }
     return endTime - startTime + 1;
 }
@@ -273,17 +329,59 @@ const hasMergeColAndRow = (day, row) => {
     } else {
         result = false;
     }
-    console.log(row, day, result);
-
     return result;
+}
+
+// 修改课程内容
+const findCourseInfo = (coursesList, id) => {
+    let result = -1;
+    coursesList.forEach(item => {
+        if (item.id === id) result = item;
+    });
+    return result;
+}
+const enableChange = (id) => {
+    console.log('当前尝试修改内容', id);
+    console.log(currentWeekCourse.value);
+    
+    const result = findCourseInfo(totalCourseData.value, id);
+
+    if (result !== -1) {
+        // Find Successfully
+        console.log('查找成功结果为:', result);
+        changeCourse(result);
+
+    } else {
+        console.log('查找失败');
+
+    }
+    addCourseDialog.value = true;
+}
+const changeCourse = (data) => {
+    dialogTitle.value = '修改课程信息';
+    confirmButtonText.value = '更新';
+    getTodaysWeekDay()
+    // 回显已选择周数信息
+    choicedWeeks(data.week);
+    const { endTime, name, room, startTime, teacher, weekDay: WK } = data;
+    tempCourseOption.value.name = name;
+    tempCourseOption.value.teacher = teacher;
+    tempCourseOption.value.room = room;
+    weekDay.value = WK;
+    courseStartTime.value = startTime;
+    courseEndTime.value = endTime;
+
 }
 // 测试按钮
 const testBtn = () => {
     console.log('测试部分');
-    // calculateWeekAndDate('2024-09-02', 18)
     // console.log(getCurrentWeekCourses());
     // console.log(currentWeekCourse.value);
-    console.log(timeListRender);
+    // console.log(timeListRender);
+    // getNewData()
+    console.log(currentWeekCourse.value);
+    console.log(timeListRender.value);
+    console.log(timeListObject.value);
 
     console.log('测试部分----end');
 }
@@ -310,7 +408,7 @@ const testBtn = () => {
                 </el-col>
             </el-row>
         </div>
-        <el-dialog v-if="addCourseDialog" v-model="addCourseDialog" title="添加课程" width="600" align-center center
+        <el-dialog v-if="addCourseDialog" v-model="addCourseDialog" :title="dialogTitle" width="600" align-center center
             :close-on-click-modal="false" @close="closeDialog">
             <el-form class="form-style">
                 <el-form-item label="课程名称:">
@@ -333,7 +431,7 @@ const testBtn = () => {
                     <div class="flex space-between" style="width: 100%;">
                         <!-- <el-time-select v-model="courseStartTime" style="width: 45% " placeholder="开始时间"
                             :start="startTime" step="00:05" :end="endTime" /> -->
-                        <el-select v-model="courseStartTime" placeholder="开始时间" @focus="getAllTime">
+                        <el-select v-model="courseStartTime" placeholder="开始时间" @visible-change="getAllTime">
                             <el-option v-for="item in timeList" :key="item.courseId" :label="`第${item.courseId}节`"
                                 :value="item.courseId" />
                         </el-select>
@@ -360,10 +458,12 @@ const testBtn = () => {
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
-                    <el-button round plain type="primary" @click="addCourseDialog = false">取消</el-button>
+                    <el-button round type="danger" v-if="!globalFlag">删除</el-button>
                     <el-button round color="#626AEF" @click="saveCourse">
-                        确认
+                        {{ confirmButtonText }}
                     </el-button>
+                    <el-button round plain type="primary" @click="cancleButton">取消</el-button>
+
                 </div>
             </template>
         </el-dialog>
@@ -390,9 +490,10 @@ const testBtn = () => {
                                     <!-- <td :rowspan="value.data[item].endTime - value.data[item].startTime + 1"> -->
                                     <td v-if="hasMergeColAndRow(day, index)" :rowspan="mergeSpan(day, value.data[day])">
                                         <!-- :rowspan="value.data[day].endTime - value.data[day].startTime + 1"> -->
+                                        <!-- <span>{{ value.data[day].id }}</span> -->
                                         <CourseInfo :courseName="value.data[day].name"
-                                            :courseTeacher="value.data[day].teacher"
-                                            :courseRoom="value.data[day].room" />
+                                            :courseTeacher="value.data[day].teacher" :courseRoom="value.data[day].room"
+                                            :id="value.data[day].id" @lClick="enableChange" />
                                     </td>
                                     <!-- <td></td> -->
                                 </template>
@@ -427,6 +528,7 @@ const testBtn = () => {
     overflow: auto;
     padding: 20px;
     box-sizing: border-box;
+
     // 添加课程
     .course-add {
         width: 80%;
@@ -454,6 +556,7 @@ const testBtn = () => {
             // border: 1px solid black;
             border-collapse: collapse;
             margin-bottom: 20px 0;
+
             // background-color: red;
             td {
                 border: 1px solid black;

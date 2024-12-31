@@ -6,6 +6,8 @@ export const useCourseStore = defineStore('course', () => {
     
     const setSchedule = (newValue) => {
         const courseId = newValue.id;
+        console.log(newValue);
+        
         if(schedule.value === null) schedule.value = {};
         schedule.value.push(newValue);
     }
@@ -13,9 +15,7 @@ export const useCourseStore = defineStore('course', () => {
         return schedule.value
     })
     const setAllSchedule = (jsonData) => {
-        console.log('jsonData');
-        schedule.value = JSON.parse(jsonData);        
-        console.log('jsonData2');
+        schedule.value = JSON.parse(jsonData);  
     }
     return {
         setSchedule,

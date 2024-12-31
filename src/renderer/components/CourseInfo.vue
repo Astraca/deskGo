@@ -26,6 +26,10 @@ const props = defineProps({
     },
     fontColor: {
         type: String, required: false, default: '#E8E9FD'
+    },
+    id: {
+        type: [Number, String],
+        required: true
     }
 });
 
@@ -36,10 +40,23 @@ const bgcColor = computed(() => ({
     '--shadow-color': props.color,
     '--font-color': props.fontColor,
 }));
+
+const emit = defineEmits(['lClick', 'rClick']);
+// 触发左键点击事件
+const handleClick = (event) => {
+    const buttonType = event.button;
+
+  if (buttonType === 0) { // left    
+    emit('lClick', props.id)
+  }
+//    else if (buttonType === 'right') { // right
+    // emit('rClick', 'Right button clicked')
+//   }
+}
 </script>
 
 <template>
-    <div class="course-info" :style="bgcColor">
+    <div class="course-info" :style="bgcColor" @click="handleClick">
         <div class="courseName">
             {{ courseName }}
         </div>
