@@ -54,52 +54,71 @@ npm run elctron:dev
     Electron: 是否能够实现托盘。如何实现消息提醒。
   + 确定:
     配置信息和课程数据存储方式。
-  
+
 + 2024年12月8日
   + 使用TS时，跑electron报错
-  
+
 + 2024年12月9日
   + 重构为JS，但无法运行
-  
+
 + 2024年12月11日
-  
+
   + 成功运行并实现配置项本地文件保存
-  
+
 + 2024年12月12日
-  
+
   + 添加课程界面及相关功能实现(已实现课程添加并保存到本地文件)
-  
+
 + 2024年12月17日
-  
+
   + <p style="text-decoration: line-through;">存在问题： 添加课程时，增加空值检查，防止输入无效数据。（已增加）</p>
-  
+
   + 实现了当前周课程筛查
-  
+
   + ![image-20241217204229269](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217204229269.png)
-  
+
   + 问题：之前的课程时间设置方式(添加课程的时候进行设置)不方便进行数据的渲染。因此，重新修改了这部分。通过在设置中心设置不同节课程的时间进行实现。最后在添加课程的时候，通过**选择第几节**的方式来进行。
-  
+
   + ![image-20241217203149329](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217203149329.png)
-  
+
   + ![image-20241217203656488](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217203656488.png)
-  
+
     在这部分设置中，用户选定开始时间后会根据前面设置的上课时长去自动计算结束时间。
-  
+
   + 优化：如果用户在设置中心进行修改，但是没有保存设置就切换到其他页面进行一个提醒。通过路由守卫进行。
   + ![image-20241217204038111](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217204038111.png)
   + ![image-20241217204112389](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241217204112389.png)
-  + 问题：需要修改课程添加部分
-+ 问题：
-  + 是否可以建立不同学校的配置文件
-  + 是否可以增加OCR识别(课程表文件导入？PDF/EXCEL?)
+  + 问题：需要修改课程添加部分（已修改）
+
++ **课程汇报问题：**
+  + **是否可以建立不同学校的配置文件**
+  + **是否可以增加OCR识别(课程表文件导入？PDF/EXCEL?)**
+
 + 2024年12月30日
+
   + 修改新增课程时不再选择具体时间，而是通过选择课程是当天第几节的方式进行；在选择完开始时间后，默认结束时间为一节课的时间差。
   + ![image-20241230220654445](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241230220654445.png)
   + 实现每一节课程的时间在组件中的传递
   + ![image-20241230220710827](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241230220710827.png)
-  + 初步实现了在课程表中展示当前周的课程的效果
+  + 解决了由于在一讲课可能跨越多个节的情况中，需要合并多个td的问题(如果不合并，每一行会多出许多空单元格)。实现了在课程表中展示**当前周的课程**的效果，并进行了CSS样式调整。
   + ![image-20241230220732484](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20241230220732484.png)
+  + 编写课程信息组件，用于展示每一门课程的信息。
+    + ![image-20250102131318190](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/image-20250102131318190.png)
+  + **问题：**
+    + **添加课程后不能立刻渲染（已修改）**
+    + **无法对添加的课程进行修改（已增加）**
+
++ 2024年12月31日
+
+  + 完成添加课程后立即渲染到页面的效果
+    + ![动画2](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/%E5%8A%A8%E7%94%BB2.gif)
+
+  + 新增点击课程弹出对应修改弹窗
+    + ![动画3](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/%E5%8A%A8%E7%94%BB3.gif)
+
   + 问题：
-    + 添加课程后不能立刻渲染
-    + 无法对添加的课程进行修改
+    + 当前修改功能没能直接在原本课程对象上进行修改，而是将修改后的课程数据然后直接添加进课程列表，导致修改后存在看不到修改结果已经多出课程的情况
+      + ![动画4](https://astraca.oss-cn-chengdu.aliyuncs.com/img_bed/%E5%8A%A8%E7%94%BB4.gif)
+
+    + 需要增加，在添加课程时，检查当前设置的时间段是否存在已有课程的检查。
 
